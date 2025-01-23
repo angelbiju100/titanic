@@ -1,0 +1,75 @@
+# Import Required Libraries
+import pandas as pd
+import numpy as np
+import seaborn as sns
+import matplotlib.pyplot as plt
+from sklearn.model_selection import train_test_split
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.metrics import accuracy_score, classification_report, confusion_matrix
+from sklearn.preprocessing import LabelEncoder
+
+# Load the Titanic Dataset
+data = pd.read_csv('titanic.csv')
+
+# Display the first few rows
+print("First 5 rows of the dataset:")
+print(data.head())
+
+# Exploratory Data Analysis (EDA)
+print("\nDataset Info:")
+print(data.info())
+
+print("\nSummary Statistics:")
+print(data.describe())
+
+# Visualize Key Features
+sns.countplot(data=data, x='Survived', hue='Sex')
+plt.title('Survival by Gender')
+plt.show()
+
+sns.countplot(data=data, x='Survived', hue='Pclass')
+plt.title('Survival by Class')
+plt.show()
+
+# Data Preprocessing
+# Check for missing values
+print("\nMissing Values:")
+print(data.isnull().sum())
+
+# Fill missing 'Age' values with the median
+data['Age'].fillna(data['Age'].median(), inplace=True)
+
+# Drop the 'Cabin' column due to many missing values
+data.drop('Cabin', axis=1, inplace=True)
+
+# Drop rows with missing 'Embarked' values
+data.dropna(subset=['Embarked'], inplace=True)
+
+# Encode Categorical Features
+label_encoder = LabelEncoder()
+data['Sex'] = label_encoder.fit_transform(data['Sex'])  # Female = 0, Male = 1
+data['Embarked'] = label_encoder.fit_transform(data['Embarked'])
+
+# Feature Selection
+X = data[['Pclass', 'Sex', 'Age', 'SibSp', 'Parch', 'Fare', 'Embarked']]
+y = data['Survived']
+
+# Train-Test Split
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+
+# Build and Train the Model
+model = RandomForestClassifier(random_state=42)
+model.fit(X_train, y_train)
+
+# Make Predictions
+y_pred = model.predict(X_test)
+
+# Evaluate the Model
+accuracy = accuracy_score(y_test, y_pred)
+print(f'\nAccuracy: {accuracy:.2f}')
+
+print("\nConfusion Matrix:")
+print(confusion_matrix(y_test, y_pred))
+
+print("\nClassification Report:")
+print(classification_report(y_test, y_pred))
